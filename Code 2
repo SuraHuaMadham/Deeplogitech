@@ -1,0 +1,35 @@
+# ==============================imports=================================
+
+from flask import Flask, jsonify
+import requests,re
+
+# ==============================functions=================================
+
+def get_details():
+
+    r = requests.get('https://time.com/').text.replace('\n','')
+    ol=re.search(r'<ol class="swipe-h">(.*?)</ol>',r)
+    article=re.findall(r'<h2 class="title">(.*?)</h2>',ol.group(0))
+
+    data=dict()
+    for sno,i in enumerate(article):
+        data[sno+1]={
+            'title':re.search(r'/>(.*?)<',i).group(0)[2:-1],
+            'link':'https://time.com'+re.search(r'href=(.*?)>',i).group(0)[5:-1]
+        }
+
+    response = jsonify(data)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
+
+
+# ============================api endpoints==================================
+app = Flask(__name__)
+
+@app.route("/")
+def hello():
+    return "Hello, World!"
+
+@app.route('/getTimeStories', methods=['GET'])
+def current_news():
+    return get_details()
