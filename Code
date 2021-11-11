@@ -1,0 +1,33 @@
+rom flask import Flask, request, Response, jsonify
+from bs4 import BeautifulSoup
+import requests 
+
+# ==============================functions=================================
+
+def get_details():
+
+    r = requests.get('https://time.com/').text
+    soup = BeautifulSoup(r, 'lxml')
+    article=soup.find('ol',class_='swipe-h')
+    data=dict()
+    for sno,i in enumerate(article.findAll('article',class_='slide')):
+        data[sno+1]={
+            'title':i.find('h2').text,
+            'link':'https://time.com'+i.find('a')["href"]
+        }
+
+    response = jsonify(data)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
+
+
+# ============================api endpoints==================================
+app = Flask(__name__)
+
+@app.route("/")
+def hello():
+    return "Hello, World!"
+
+@app.route('/getTimeStories', methods=['GET'])
+def current_news():
+    return get_details()
